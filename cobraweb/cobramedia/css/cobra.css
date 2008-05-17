@@ -1,0 +1,226 @@
+body {
+	font-size: small;
+}
+
+form {
+	display: inline;
+	position:absolute;
+	left: 500px;
+}
+			
+#cobraLogger {
+	border: dashed 1px;
+}
+			
+.alt{
+	background-color: #E5ECF9;
+}
+
+#consts {
+	width: 100%;
+	height: 100%;
+	padding: 15px 0px;
+
+}
+
+.list {
+	width: 100%;
+	font-size: 90%;
+	border: #C0C0C0 solid 1px;
+	border-left: none;
+	border-right: none;
+	border-collapse: collapse;
+}
+			
+.list td {
+	padding: 5px;
+}
+
+.dict {
+	width: 100%;
+	font-size: 90%;
+	border: #C0C0C0 solid 1px;
+	border-left: none;
+	border-right: none;
+	border-collapse: collapse;
+}
+			
+.dict td {
+	padding: 5px;
+	border: gray solid 1px;
+}
+
+.dict .w40 {
+	width: 10px;
+}
+
+.empty {
+	
+}
+
+#static {
+	border: solid 1px #808080;
+	width: 38%;
+	position: relative;
+	margin-top: 20px;
+	height: 200%;
+}
+
+/*
+**源码区域的样式
+*/
+#srczone {
+	border: solid 1px;
+	margin: 5px;	
+	padding-top: 3px;
+}
+
+#srcfile {
+	 display: inline;
+	 padding-left: 80px;
+	 font-size: 14px;
+	 color: blue;
+}
+
+#src_area {
+	height: 200px;
+	overflow: auto;
+	margin:10px;
+	text-align:center;
+}
+
+/*
+**运行时栈的样式
+*/
+#runtime {
+	width: 58%;
+	border: solid 1px #808080;
+	margin-top: 20px;
+	position: relative;
+	padding: 20px 10px 10px 10px;
+	margin-left: 10px;
+	height: 200%;
+}
+
+#stack {
+	margin-top: 20px;
+	padding: 30px 5px 20px 20px;
+	border: solid 1px;
+	position: relative;
+	width:90%;
+	border: dashed 1px #C0C0C0;
+}
+
+#runtime table td {
+	vertical-align: top;
+}
+			
+div.group-label {
+	padding: 2px 10px 0px 10px;
+	position: absolute;
+	left: 15px;
+	top: -11px;
+	font-size: 13px;
+	background-color: #808080;
+	color:white;
+	height: 20px;
+	text-align:center;
+}
+
+/*
+** 名字空间区域的样式
+*/
+
+#namespace {
+	margin: 20px 5px;
+	clear: both;
+	border: dashed 1px #C0C0C0;
+	height: 80%;
+	position: relative;
+}
+
+/*
+**字节码指令区域的样式
+*/
+#bytecode { 
+	padding-top: 20px; 
+	margin-top: 20px; 
+	width: 100%; 
+	border: dashed 1px #C0C0C0;
+	height: 100px;
+	position: relative;
+}
+
+#bytecode .info {
+	text-align: center;
+	width: 100%;
+	height: 100%;
+	font-size: 80%;
+}
+
+#bytecode .code {
+	color: blue;
+}
+
+#bytecode .description {
+	text-align: left;
+	margin-left: 20px;
+}
+			
+#stack input {
+	width: 200px;
+}
+			
+#stack	input.top {
+	color: red;
+}
+
+/*
+**导航部分的样式
+*/
+.nav {
+	padding-top: 25px;
+	padding-left: 5px;
+	padding-bottom: 1px;
+	border-bottom: #BBD9EE solid 1px;
+	background-color: #BBD9EE;
+	font-size: 100%;
+	font-weight: normal;
+}
+		
+.nav a {
+	text-decoration: none;
+	border: #E7F1F8 solid 1px;
+	margin: 2px;
+	padding: 1px 10px 2px 10px;
+	background: #E7F1F8;
+}
+
+.nav a:visited {
+	color: blue;
+}
+		
+.nav a.active, .nav a:hover {
+	border: #fff solid 1px; 
+	background-color: #fff; 
+	color: #FF9834;
+}
+
+/*
+**
+*/
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.inline {
+	display: inline;
+}
+
+strong {
+	color: blue;
+}
