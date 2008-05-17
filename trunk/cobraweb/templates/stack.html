@@ -1,0 +1,5 @@
+{% for item in items %}
+<input type="button" value="{% if item.value %}{{ item.value }}{% endif %}" />
+{% if item.is_top %}<img src="/cobramedia/img/top_1.gif" align="absmiddle"/>{% endif %}
+<br/>
+{% endfor %}

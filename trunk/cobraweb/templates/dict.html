@@ -1,0 +1,13 @@
+<div style="color:red;">
+	共{{ item_count }}条数据
+</div>
+<table class="dict">
+<tbody>
+{% for item in dict.items %}
+<tr>
+	<td class="{% cycle empty,alt %} w40"><strong>{{ item.0 }}</strong></td>
+	<td class="{% cycle empty,alt %}">{{ item.1 }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>

@@ -1,0 +1,504 @@
+<html>
+	<head>
+		<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+		<link type="text/css" rel="stylesheet" href="/cobramedia/css/cobra.css"></link>
+		
+		<link type="text/css" rel="stylesheet" href="/cobramedia/css/SyntaxHighlighter.css"></link>
+		<link type="text/css" rel="stylesheet" href="/cobramedia/yui/logger/assets/skins/sam/logger.css">
+
+		<script type="text/javascript" src="/cobramedia/yui/yahoo-dom-event/yahoo-dom-event.js"></script>
+		<script type="text/javascript" src="/cobramedia/yui/dragdrop/dragdrop-min.js"></script>
+		<script type="text/javascript" src="/cobramedia/yui/logger/logger-min.js"></script>
+
+		<script language="javascript" src="/cobramedia/js/shCore.js"></script>
+		<script language="javascript" src="/cobramedia/js/shBrushPython.js"></script>
+		<script src="/cobramedia/js/prototype.js"></script>
+		<script type="text/javascript">
+			
+		</script>
+	</head>
+	
+	<body class="yui-skin-sam">
+		<div id="srczone">
+			<div id="srcfile">
+				<span>当前Python文件 ：</span>
+				<span id="src_path">no file</span>
+			</div>
+			<form id="selectfile" name="selectfile">
+				<input type="file" id="path_edit" name="path"/>
+				<input type="submit" id="submit_btn" value="提交"/>
+				<input type="button" id="nextstep" value="下一步"/>
+				<input type="button" id="excute" value="执行"/>
+				<input type="button" id="restore_vm" value="恢复环境"/>
+				<input type="button" id="exit" value="退出"/>
+			</form>
+			<div id="src_area">
+				<textarea id="dised_src" name="code" class="python" cols="140" rows="10">[反汇编代码区域]</textarea>
+			</div>
+		</div>
+
+		<!--
+		<input type="text" value="输入路径..." id="path_input"/><input id="goto" type="button" value="goto" />
+		-->
+		
+		
+		
+		<div id="static" class="left">
+			<div class="group-label">
+					编译时数据
+			</div>
+			<div class="nav" id="compile_data_nav">
+				<a href="#" id="compile_data_consts">consts</a><a href="#" class="active" id="compile_data_names">names</a>
+			</div>
+			<div id="compile_data">
+			<!-- 在运行时，这里会显示编译得到的数据 -->
+			</div>
+		</div>
+		
+		<div id="runtime" class="right">
+			<div class="group-label">
+					运行时数据
+			</div>
+			<table width="100%">
+				<tbody>
+					<tr>
+						<td width="45%">
+							<div id="stack">
+								<div class="group-label">
+									运行时栈
+								</div>
+								<div id="stack_content">
+								<!-- 这里会在运行时被填充栈的图示 -->
+								</div>
+							</div>
+						</td>
+						<td width="40%">
+							<div id="bytecode">
+								<div class="group-label">
+									字节码指令
+								</div>
+								<div id="bytecode_content" class="info">
+									<!-- 这里会在运行时被填充字节码指令的描述 -->
+								</div>
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<div id="namespace">
+				<div class="group-label">
+					名字空间
+				</div>
+				<div class="nav" id="namespace_data_nav">
+					<a href="#" class="active" id="namespace_data_locals">local</a><a href="#" id="namespace_data_globals">global</a>
+				</div>
+				<div id="namespace_data">
+					<!-- 在运行时，这里会显示编译得到的数据 -->
+				</div>
+			</div>
+		
+		
+		<div id="cobraLogger" class="yui-log yui-log-container"></div>
+		
+		<script>
+			/*
+			 * 数据区域
+			 */
+			var code = null;
+			var consts = null;
+			var names = null;
+			var stack = null;
+			var bytecode = null;
+			var bytecodePath = null;
+			var locals = null;
+			var globals = null;
+			
+			$("selectfile").onsubmit = submitHandler;
+			//$("goto").onclick = gotoLine;
+			var path2line = {}
+			var itemHeight = null;
+			
+			var loggerConf = {
+				'top':'3px',
+				'right':'3px'
+			}
+			
+			/*
+			 * 函数区域
+			 */		
+			 
+			/*
+			 * 以下代码处理“代码区域”的高亮及跳转
+			 */ 
+			function findPath2Line(text) {
+				var items = $A(text.split("\n"));
+				items.each(function(item, index) {
+					var pos = item.lastIndexOf("$");
+					var path = item.substring(pos).strip();
+					path2line[path] = index+1;
+				})
+			}
+			
+			function gotoLine(path) {
+				var lineIndex = path2line[path];
+				dp.SyntaxHighlighter.GoTo(lineIndex);
+				$("src_area").scrollTop = (lineIndex-3)*itemHeight;
+			}
+			
+			function showCode(code) {
+				if (code == null) {
+					var hilightedCode = $('hilighted_code');
+					if (hilightedCode) {
+						hilightedCode.parentNode.removeChild(hilightedCode);
+					}
+					$("dised_src").firstChild.nodeValue = '[反汇编代码区域]';
+					dp.SyntaxHighlighter.HighlightAll('code');
+				}
+				else {
+					//solution for ie
+					code = code.replace(/\(</g, "([").replace(/>\)/g, "])");
+					code = code.replace(/\r\n/g, "\n");
+					
+					//删除之前高亮的code
+					var hilightedCode = $('hilighted_code');
+					if (hilightedCode) {
+						hilightedCode.parentNode.removeChild(hilightedCode);
+					}
+					
+					//对新的code进行高亮处理
+					$("dised_src").firstChild.nodeValue = code;
+					dp.SyntaxHighlighter.HighlightAll('code');
+					findPath2Line(code);
+					itemHeight = $("line_1").offsetHeight;
+				}
+			}
+			
+			/*
+			 * 以下代码更新各个数据区域
+			 */
+			function updateCompileData(data, header) {
+				if(header != null) {
+					var old_header = null;
+					if(header == 'compile_data_names') {
+						old_header = 'compile_data_consts';
+					}
+					else {
+						old_header = 'compile_data_names';
+					}
+					
+					$(header).className = "active";
+					$(old_header).className = "";
+				}
+				var compile_data = $('compile_data');
+				compile_data.innerHTML = data;
+			}
+			
+			function updateNamespaceData(data, header) {
+				if(header != null) {
+					var old_header = null;
+					if(header == 'namespace_data_locals') {
+						old_header = 'namespace_data_globals';
+					}
+					else {
+						old_header = 'namespace_data_locals';
+					}
+					
+					$(header).className = "active";
+					$(old_header).className = "";
+				}
+				var compile_data = $('namespace_data');
+				compile_data.innerHTML = data;
+			}
+			
+			function updateStack(stack) {
+				$('stack_content').innerHTML = stack;
+			}
+			
+			function updateByteCode(bytecode) {
+				$('bytecode_content').innerHTML = bytecode.replace("&lt;", "<").replace("&gt;", ">");
+			}
+			
+			function extract(text, begTag, endTag) {
+				var beg = text.indexOf(begTag);
+				beg += begTag.length;
+				var end = text.indexOf(endTag, beg);
+				return text.substring(beg, end);
+			}
+			
+			function update(request) {
+				YAHOO.log("接收数据 ：" + request.responseText, "info");
+				code = extract(request.responseText, "<code>", "</code>");
+				consts = extract(request.responseText, "<consts>", "</consts>");
+				names = extract(request.responseText, "<names>", "</names>");
+				locals = extract(request.responseText, "<locals>", "</locals>");
+				globals = extract(request.responseText, "<globals>", "</globals>")+"roberthaha";
+				stack = extract(request.responseText, "<stack>", "</stack>");
+				bytecode = extract(request.responseText, "<bytecode>", "</bytecode>");
+				bytecodePath = extract(request.responseText, "<bytecodepath>", "</bytecodepath>");
+				showCode(code);
+				updateCompileData(names, null);
+				updateNamespaceData(locals, null);
+				updateStack(stack);
+				updateByteCode(bytecode);
+				gotoLine(bytecodePath);
+				
+				enterExcuteMode();
+			}
+			
+			/*
+			 * 以下代码处理“提交”命令
+			 */
+			function submitHandler() {
+				var params = {
+					path: document.selectfile.path.value
+				}
+				
+				$("src_path").innerHTML = params.path;
+				
+				YAHOO.log("文件 ：" + params.path, "warn");
+				params = $H(params).toQueryString();
+				new Ajax.Request(
+					"/get_result/",
+					{
+						method: "get",
+						parameters: params, 
+						onSuccess: update
+					}
+				)
+				return false;
+			}
+			
+			/*
+			 * 以下代码处理“执行”命令
+			 */
+			function handleExcuteResult(request) {
+				YAHOO.log("返回 ：" + request.responseText, "info");
+				
+				is_vm_finished = extract(request.responseText, "<is_vm_finished>", "</is_vm_finished>");
+				if(is_vm_finished == "no") {
+					enterExcuteMode();
+				}
+				else if(is_vm_finished == "yes") {
+					enterRestoreVmMode();
+				}
+			}
+			
+			function excute(event) {
+				new Ajax.Request(
+					"/excute/",
+					{
+						method: "get",
+						onSuccess: handleExcuteResult
+					}
+				)
+				return false;
+			}
+			
+			/*
+			 * 以下代码处理“退出”命令
+			 */
+			function handleExitResult(request) {
+				YAHOO.log("返回 ：" + request.responseText, "info");
+			}
+			
+			function exit(event) {
+				new Ajax.Request(
+					"/exit/",
+					{
+						method: "get",
+						onSuccess: handleExitResult
+					}
+				)
+				return false;
+			}
+			
+			/*
+			 * 以下代码处理“恢复环境”命令
+			 */
+			function handleResumeVmResult(request) {
+				enterSelectScriptMode();
+				//TODO : 清除代码的效果不理想
+				code = null;
+				consts = '';
+				names = '';
+				locals = '';
+				globals = '';
+				stack = '';
+				bytecode = '';
+				bytecodePath = '';
+
+				showCode(code);
+				updateCompileData(names, null);
+				updateNamespaceData(locals, null);
+				updateStack(stack);
+				updateByteCode(bytecode);
+
+				YAHOO.log("返回 ：" + request.responseText, "info");
+			}
+			
+			function restore_vm(event) {
+				new Ajax.Request(
+					"/restore_vm/",
+					{
+						method: "get",
+						onSuccess: handleResumeVmResult
+					}
+				)
+				return false;
+			}
+			
+			/*
+			 * 以下代码处理“下一步”命令
+			 */
+			function handleNextStepResult(request) {
+				YAHOO.log("返回 ：" + request.responseText, "info");
+				stack = extract(request.responseText, "<stack>", "</stack>");
+				bytecode = extract(request.responseText, "<bytecode>", "</bytecode>");
+				bytecodePath = extract(request.responseText, "<bytecodepath>", "</bytecodepath>");
+				locals = extract(request.responseText, "<locals>", "</locals>");
+				globals = extract(request.responseText, "<globals>", "</globals>")+"roberthaha";
+				
+				updateStack(stack);
+				updateByteCode(bytecode);
+				gotoLine(bytecodePath);
+				updateNamespaceData(locals, null);
+				
+				is_vm_finished = extract(request.responseText, "<is_vm_finished>", "</is_vm_finished>");
+				if(is_vm_finished == "no") {
+					enterExcuteMode();
+				}
+				else if(is_vm_finished == "yes") {
+					enterRestoreVmMode();
+				}
+			}
+			
+			function nextStep(event) {
+				new Ajax.Request(
+					"/next_step/",
+					{
+						method: "get",
+						onSuccess: handleNextStepResult
+					}
+				)
+				return false;
+			}
+			
+			/*
+			 * 以下代码注册event handler
+			 */
+			Event.observe("nextstep", "click", nextStep, false);
+			Event.observe("excute", "click", excute, false);
+			Event.observe("exit", "click", exit, false);
+			Event.observe("restore_vm", "click", restore_vm, false);
+			var myLogReader = new YAHOO.widget.LogReader("cobraLogger", loggerConf);
+			
+			/*
+			 * 以下代码负责编译期数据的显示和切换
+			 */
+			var cur_compile_data = "compile_data_names";
+			
+			function changeCompileData(event) {
+				var old_compile_data = cur_compile_data;
+				el = Event.element(event);
+				cur_compile_data = el.id;
+				if(cur_compile_data != old_compile_data) {
+					var compile_data = $("compile_data");
+					if(cur_compile_data == "compile_data_names") {
+						updateCompileData(names, "compile_data_names");
+					}
+					else {
+						updateCompileData(consts, "compile_data_consts");
+					}
+				}
+			}
+			
+			$$("#compile_data_nav a").each(function(link) {
+				Event.observe(link, 'click', changeCompileData, false);
+			});
+			
+			/*
+			 * 以下代码负责名字空间数据的显示和切换
+			 */
+			var cur_namespace_data = "namespace_data_locals";
+			
+			function changeNamespaceData(event) {
+				var old_namespace_data = cur_namespace_data;
+				el = Event.element(event);
+				cur_namespace_data = el.id;
+				if(cur_namespace_data != old_namespace_data) {
+					var namespace_data = $("namespace_data");
+					if(cur_namespace_data == "namespace_data_locals") {
+						updateNamespaceData(locals, "namespace_data_locals");
+					}
+					else {
+						updateNamespaceData(globals, "namespace_data_globals");
+					}
+				}
+			}
+			
+			$$("#namespace_data_nav a").each(function(link) {
+				Event.observe(link, 'click', changeNamespaceData, false);
+			});
+			
+			/*
+			 * 以下代码负责按钮栏的更新
+			 */
+			/*
+			 * 0 : select script
+			 * 1 : excute
+			 * 2 : restore vm
+			 */
+			var cur_tool_bar_mode = -1;
+			function initToolBar() {
+				$('path_edit').disabled = false;
+				$('submit_btn').disabled = false;
+				$('nextstep').disabled = true;
+				$('restore_vm').disabled = true;
+				$('excute').disabled = true;
+				$('exit').disabled = true;
+			}
+			
+			function disableToolBar() {
+				$('path_edit').disabled = true;
+				$('submit_btn').disabled = true;
+				$('excute').disabled = true;
+				$('nextstep').disabled = true;
+				$('exit').disabled = true;
+				$('restore_vm').disabled = true;
+			}
+			
+			function enterExcuteMode() {
+				if(cur_tool_bar_mode == 1) {
+					return;
+				}
+				disableToolBar();
+				$('nextstep').disabled = false;
+				$('excute').disabled = false;
+				cur_tool_bar_mode = 1;
+			}
+			
+			function enterRestoreVmMode() {
+				if(cur_tool_bar_mode == 2) {
+					return;
+				}
+				disableToolBar();
+				$('restore_vm').disabled = false;
+				cur_tool_bar_mode = 2;
+			}
+			
+			function enterSelectScriptMode() {
+				if(cur_tool_bar_mode == 0) {
+					return;
+				}
+				disableToolBar();
+				$('path_edit').disabled = false;
+				$('submit_btn').disabled = false;
+				$('exit').disabled = false;
+				cur_tool_bar_mode = 0;
+			}
+			initToolBar();
+		</script>
+			
+	</body>
+</html>

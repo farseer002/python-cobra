@@ -1,0 +1,10 @@
+#Tue Oct 02 17:54:56 CST 2007
+eclipse.preferences.version=1
+encoding//core/bytecodes.py=UTF-8
+encoding//core/disassemble.py=UTF-8
+encoding//core/scopestack.py=UTF-8
+encoding//decompile/code2description.py=UTF-8
+encoding//decompile/views.py=UTF-8
+encoding//test/alltest.py=gbk
+encoding/alltest.py=gbk
+encoding/urls.py=UTF-8
